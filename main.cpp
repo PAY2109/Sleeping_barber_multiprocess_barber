@@ -1,13 +1,9 @@
 #include <windows.h>
 #include <stdio.h>
 #include <iostream>
-
-#define MAX_SEM_COUNT 10
-#define THREADCOUNT 12
+#include <random>
 
 int NUMBEROFSEATSWR = 2;
-
-HANDLE ghSemaphore;
 
 HANDLE barberReady;
 HANDLE accessWRSeats;
@@ -18,10 +14,8 @@ DWORD WINAPI barber(LPVOID);
 
 
 int main(void) {
-    //HANDLE aThread[THREADCOUNT];
     HANDLE barberThread;
     DWORD ThreadID;
-    int i;
 
     barberReady = CreateSemaphore(
             NULL,           // default security attributes
@@ -78,24 +72,22 @@ int main(void) {
 
 
 DWORD WINAPI barber(LPVOID lpParam) {
-// lpParam not used in this example
+// lpParam not used
     UNREFERENCED_PARAMETER(lpParam);
-    DWORD dwWaitResult;
-    int i = 0;
-    while (i < 4) {
-// Try to enter the semaphore gate.
+
+    std::random_device rd; // obtain a random number from hardware
+    std::mt19937 eng(rd()); // seed the generator
+    std::uniform_int_distribution<> distr(1000, 10000); // define the range
+
+    int i = 1;
+    while (true) {
+
         std::cout << "Barber is sleeping" << std::endl;
         WaitForSingleObject(
                 custReady,   // handle to semaphore
                 INFINITE);           // infinite time-out interval
         std::cout << "Barber is awaken" << std::endl;
-/*
-// The semaphore object was signaled.
-dwWaitResult = WaitForSingleObject(
-        accessWRSeats,   // handle to semaphore
-        INFINITE);           // zero-second time-out interval
-*/
-//NUMBEROFSEATSWR++;
+
         if (!ReleaseSemaphore(
                 barberReady,  // handle to semaphore
                 1,            // increase count by one
@@ -104,10 +96,6 @@ dwWaitResult = WaitForSingleObject(
             printf("ReleaseSemaphore error: %d\n", GetLastError());
         }
 
-// Simulate thread spending time on task
-//Sleep(5);
-
-
         if (!ReleaseSemaphore(
                 accessWRSeats,  // handle to semaphore
                 1,            // increase count by one
@@ -115,9 +103,9 @@ dwWaitResult = WaitForSingleObject(
         {
             printf("ReleaseSemaphore error: %d\n", GetLastError());
         }
-        std::cout << "Barber is cutting" << std::endl;
-        Sleep(1000); // simulate cutting
-//i++;
+        std::cout << "Barber is cutting client number " << i << std::endl;
+        Sleep(distr(eng)); // simulate cutting
+        i++;
     }
     return 0;
 }
