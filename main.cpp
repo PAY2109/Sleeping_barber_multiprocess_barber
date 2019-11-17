@@ -8,6 +8,7 @@ int NUMBEROFSEATSWR = 2;
 HANDLE barberReady;
 HANDLE accessWRSeats;
 HANDLE custReady;
+HANDLE seatBelt;
 
 
 DWORD WINAPI barber(LPVOID);
@@ -34,6 +35,11 @@ int main(void) {
             1,  // maximum count
             "custReady");          // custReady semaphore
 
+    seatBelt = CreateSemaphore(
+            NULL,           // default security attributes
+            0,  // initial count
+            1,  // maximum count
+            "seatBelt");          // seatBelt semaphore
 
 
 
@@ -66,6 +72,7 @@ int main(void) {
     CloseHandle(barberReady);
     CloseHandle(accessWRSeats);
     CloseHandle(custReady);
+    CloseHandle(seatBelt);
 
     return 0;
 }
@@ -103,7 +110,17 @@ DWORD WINAPI barber(LPVOID lpParam) {
         {
             printf("ReleaseSemaphore error: %d\n", GetLastError());
         }
+
+
         std::cout << "Barber is cutting client number " << i << std::endl;
+
+        if (!ReleaseSemaphore(
+                seatBelt,  // handle to semaphore
+                1,            // increase count by one
+                NULL))       // not interested in previous count
+        {
+            printf("ReleaseSemaphore error: %d\n", GetLastError());
+        }
         Sleep(distr(eng)); // simulate cutting
         i++;
     }
