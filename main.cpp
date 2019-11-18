@@ -113,7 +113,7 @@ DWORD WINAPI barber(LPVOID lpParam) {
 
 
         std::cout << "Barber is cutting client number " << i << std::endl;
-
+        Sleep(distr(eng)); // simulate cutting
         if (!ReleaseSemaphore(
                 seatBelt,  // handle to semaphore
                 1,            // increase count by one
@@ -121,7 +121,7 @@ DWORD WINAPI barber(LPVOID lpParam) {
         {
             printf("ReleaseSemaphore error: %d\n", GetLastError());
         }
-        Sleep(distr(eng)); // simulate cutting
+
         i++;
     }
     return 0;
